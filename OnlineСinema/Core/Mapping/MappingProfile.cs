@@ -22,6 +22,7 @@ namespace OnlineСinema.Core.Mapping
                 ;
 
             CreateMap<Image, ImageDto>()
+                .ForMember(x=>x.Extention, opt => opt.MapFrom(x=>x.fileExtention))
                 ;
 
             CreateMap<Image, ImageFullDto>()

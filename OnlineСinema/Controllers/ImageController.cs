@@ -1,5 +1,6 @@
 ﻿using AdstractHelpers.Controller;
 using MediatR;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OnlineСinema.Models.Commands.Images;
@@ -12,14 +13,47 @@ namespace OnlineСinema.Controllers
     public class ImageController(IMediator mediator) : MediatorContoller(mediator)
     {
         [HttpPost]
-        public Task<IActionResult> UploadImage(string Name, [FromBody] IFormFile file, CancellationToken cancellationToken) => 
-            MediatorSendRequest(new UploadImageCommand()
+        public Task<IActionResult> UploadImage(IFormFile file, string name, bool isCover, CancellationToken cancellationToken)
+        {
+            MemoryStream stream = new MemoryStream();
+
+            file.CopyTo(stream);
+
+            return MediatorSendRequest(new UploadImageCommand()
                 {
-                    Name = Name
-                },
+                    Name = name,
+                    Data = stream,
+                    Extention = Path.GetExtension(file.FileName),
+                    IsCover = isCover
+            },
                 cancellationToken,
                 null
             );
+        }
+
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetImage([FromRoute] Guid id, CancellationToken cancellationToken)
+        {
+            var res = await _mediator.Send(new ImageByIdQuery()
+            {
+                Id = id
+            }, cancellationToken);
+
+            if (res.IsError)
+                return StatusCode(res.StatusCode);
+
+            return File(res.Data.Data, res.Data.MediaType);
+        }
+
+        [HttpDelete("{id:guid}")]
+        public Task<IActionResult> DeleteImage([FromRoute] Guid id, CancellationToken cancellationToken)
+        => MediatorSendRequest(new DeleteImageByIdCommand()
+            {
+                Id = id
+            }, 
+            cancellationToken,
+            null);
+
 
         [HttpGet]
         public Task<IActionResult> GetImage(string? search, int pageSize = 10, int pageNumber = 0, CancellationToken cancellationToken = default) =>
@@ -34,7 +68,7 @@ namespace OnlineСinema.Controllers
             );
 
         [HttpGet("closest")]
-        public async Task<IActionResult> SyncImage([FromQuery]List<string> texts,  bool isCover, CancellationToken cancellationToken)
+        public async Task<IActionResult> ClosestImage([FromQuery]List<string> texts,  bool isCover, CancellationToken cancellationToken)
         {
             var res = await _mediator.Send(new ImageByParamsQuery()
             {
