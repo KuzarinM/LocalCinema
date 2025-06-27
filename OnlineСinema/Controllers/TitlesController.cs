@@ -59,5 +59,15 @@ namespace OnlineСinema.Controllers
            },
            cancellationToken,
            null);
+
+        [HttpGet("{id:guid}")]
+        public Task<IActionResult> GetTitle([FromRoute] Guid id, CancellationToken cancellationToken)
+            => MediatorSendRequest(new TitleFullByIdQuery()
+            {
+                Id = id,
+                Principal = HttpContext.User
+            },
+            cancellationToken,
+           null);
     }
 }

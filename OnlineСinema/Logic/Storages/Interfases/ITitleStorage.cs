@@ -11,6 +11,8 @@ namespace OnlineСinema.Logic.Storages.Interfases
 
         public Task<Title?> GetMedia(bool isFilm, string name, string path);
 
+        public Task<Title?> GetTitleById(Guid Id, Guid? userId = null);
+
         public Task<PaginationModel<TitleFullDto>> GetFullTitles(
             Guid? userId,
             string? search, 

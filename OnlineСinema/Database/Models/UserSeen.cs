@@ -34,6 +34,6 @@ public partial class UserSeen
     [InverseProperty("UserSeens")]
     public virtual Title Title { get; set; }
 
-    [ForeignKey("UserId")]
+    [ForeignKey("Userid")]
     public virtual IdentityUser User { get; set; }
 }

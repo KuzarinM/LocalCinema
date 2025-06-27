@@ -19,6 +19,7 @@ namespace OnlineСinema.Core.Mapping
             CreateMap<Title, TitleFullDto>()
                 .ForMember(x=>x.Tags, opt => opt.MapFrom(x=>x.Tags.Select(x=>x.Name)))
                 .ForMember(x=>x.Seasons, opt => opt.MapFrom(x=>x.Seasones))
+                .ForMember(x => x.IsSeen, opt => opt.MapFrom(x => x.UserSeens.Count() > 0))
                 ;
 
             CreateMap<Image, ImageDto>()
@@ -34,6 +35,7 @@ namespace OnlineСinema.Core.Mapping
                 .ForMember(x => x.Tags, opt => opt.MapFrom(x => x.Tags.Select(x => x.Name)))
                 .ForMember(x => x.SeasonesCount, opt => opt.MapFrom(x => x.Seasones.Count()))
                 .ForMember(x => x.EpisodesCount, opt => opt.MapFrom(x => x.Seasones.Select(y=>y.Episodes.Count()).Sum()))
+                .ForMember(x=>x.IsSeen, opt => opt.MapFrom(x=>x.UserSeens.Count()>0))
                 ;
 
             CreateMap<MediaModel, Title>()

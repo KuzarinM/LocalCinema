@@ -7,6 +7,8 @@ using OnlineСinema.Database;
 using OnlineСinema.Logic.Storages.Interfases;
 using OnlineСinema.Models;
 using OnlineСinema.Models.Dtos.Titles;
+using System.IO;
+using System.Xml.Linq;
 
 namespace OnlineСinema.Logic.Storages.Implements
 {
@@ -39,6 +41,13 @@ namespace OnlineСinema.Logic.Storages.Implements
             return GetQueryable().FirstOrDefaultAsync(x => x.Isfilm == isFilm && (x.Name == name || x.Path == path));
         }
 
+        public Task<Title?> GetTitleById(Guid Id, Guid? userId = null)
+        {
+            return GetQueryable()
+                .Include(x => x.UserSeens.Where(x => !userId.HasValue || x.Userid == userId.ToString()))
+                .FirstOrDefaultAsync(x => x.Id == Id);
+        }
+
         public async Task<PaginationModel<TitleFullDto>> GetFullTitles(
             Guid? userId = null,
             string? search = null, 
@@ -49,6 +58,7 @@ namespace OnlineСinema.Logic.Storages.Implements
         )
         {
             var items = GetQueryable()
+                .Include(x=>x.UserSeens.Where(x=> !userId.HasValue || x.Userid == userId.ToString()))
                 .Where(x =>
                     (string.IsNullOrEmpty(search) || x.Name.Contains(search)) &&
                     (isFilm == null || x.Isfilm == isFilm) &&
@@ -95,6 +105,7 @@ namespace OnlineСinema.Logic.Storages.Implements
         )
         {
             var items = GetQueryable()
+                .Include(x => x.UserSeens.Where(x => !userId.HasValue || x.Userid == userId.ToString()))
                 .Where(x =>
                     (string.IsNullOrEmpty(search) || x.Name.Contains(search)) &&
                     (isFilm == null || x.Isfilm == isFilm) &&
