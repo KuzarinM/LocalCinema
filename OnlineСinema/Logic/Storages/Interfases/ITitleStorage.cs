@@ -13,6 +13,8 @@ namespace OnlineСinema.Logic.Storages.Interfases
 
         public Task<Title?> GetTitleById(Guid Id, Guid? userId = null);
 
+        public Task<List<Title>> GetTitlesWithoutDescription();
+
         public Task<PaginationModel<TitleFullDto>> GetFullTitles(
             Guid? userId,
             string? search, 

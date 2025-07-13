@@ -19,5 +19,13 @@ namespace OnlineСinema.Controllers
             }, 
             cancellationToken, 
             null);
+
+        [HttpPost("description/generate")]
+        public async Task<IActionResult> GenerateDescription(CancellationToken cancellationToken)
+            => await MediatorSendRequest(new TitlesGenerateDescriptionCommand()
+            {
+            },
+            cancellationToken,
+            null);
     }
 }

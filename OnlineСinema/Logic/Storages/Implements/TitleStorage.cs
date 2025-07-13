@@ -9,6 +9,7 @@ using OnlineСinema.Models;
 using OnlineСinema.Models.Dtos.Titles;
 using System.IO;
 using System.Xml.Linq;
+using tryAGI.OpenAI;
 
 namespace OnlineСinema.Logic.Storages.Implements
 {
@@ -160,6 +161,13 @@ namespace OnlineСinema.Logic.Storages.Implements
                 title.Coverimageid = coverImageId;
 
             await _dbContext.SaveChangesAsync();
+        }
+
+        public Task<List<Title>> GetTitlesWithoutDescription()
+        {
+            return GetQueryable()
+                .Where(x=>x.Description.ToLower() == "placeholder")
+                .ToListAsync();
         }
 
         protected override IQueryable<Title> AddIncludes(IQueryable<Title> query) => query

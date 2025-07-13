@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -41,6 +42,24 @@ namespace OnlineСinema.Core.Extentions
             app.UseAuthorization();
 
             app.MapControllers();
+
+            var provider = new FileExtensionContentTypeProvider();
+            provider.Mappings[".mp4"] = "video/mp4";
+            provider.Mappings[".webm"] = "video/webm";
+            provider.Mappings[".mkv"] = "video/x-matroska";
+
+            // Конфигурация статических файлов
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                ServeUnknownFileTypes = true, // Разрешить неизвестные MIME-типы
+                DefaultContentType = "video/mp4", // Тип по умолчанию
+                ContentTypeProvider = provider,
+                OnPrepareResponse = ctx =>
+                {
+                    // Включаем поддержку потоковой передачи
+                    ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
+                }
+            });
         }
 
         public static void AddServices(this IServiceCollection services)
@@ -66,6 +85,7 @@ namespace OnlineСinema.Core.Extentions
             services.AddScoped<ISeasonStorage, SeasonStorage>();
             services.AddScoped<IEpisodeStorage, EpisodeStorage>();
             services.AddScoped<IImageStorage, ImageStorage>();
+            services.AddScoped<ITitleCashStorage, TitleCashStorage>();
 
             services.AddHttpContextAccessor();
 

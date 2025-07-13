@@ -69,5 +69,14 @@ namespace OnlineСinema.Controllers
             },
             cancellationToken,
            null);
+
+        [HttpGet("description/{id:guid}")]
+        public Task<IActionResult> GenerateTitleDescription([FromRoute] Guid id, CancellationToken cancellationToken) 
+            => MediatorSendRequest(new CreateTitleDescriptionQuery()
+            {
+                TitleId = id,
+            },
+            cancellationToken,
+           null);
     }
 }
