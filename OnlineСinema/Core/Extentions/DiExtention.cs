@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NLog.Config;
+using NLog.Extensions.Logging;
+using NLog.Targets;
 using OnlineСinema.Core.Configurations;
 using OnlineСinema.Database;
 using OnlineСinema.Logic.Storages.Implements;
@@ -14,6 +17,7 @@ using PIHelperSh.Configuration;
 using PIHelperSh.Configuration.Attributes;
 using System.Reflection;
 using System.Text;
+using LogLevel = NLog.LogLevel;
 
 namespace OnlineСinema.Core.Extentions
 {
@@ -23,6 +27,8 @@ namespace OnlineСinema.Core.Extentions
 
         public static void ConfigureApp(this WebApplicationBuilder builder)
         {
+            builder.AddLogger();
+
             builder.Services.AddConfigurations(builder.Configuration);
             builder.Configuration.AddConstants();
 
@@ -154,6 +160,28 @@ namespace OnlineСinema.Core.Extentions
 
                 options.UseNpgsql(config.ConnectionString);
             });
+        }
+
+        public static void AddLogger(this WebApplicationBuilder builder)
+        {
+            var nLogConfig = new LoggingConfiguration();
+            var logConsole = new ConsoleTarget();
+            var blackhole = new NullTarget();
+
+            var logFile = new FileTarget()
+            {
+                FileName = "${basedir}/logs/${shortdate}_logs.log"
+            };
+
+            nLogConfig.AddRule(LogLevel.Trace, LogLevel.Trace, blackhole, "Microsoft.AspNetCore.*", true);
+            nLogConfig.AddRule(LogLevel.Info, LogLevel.Warn, logFile, "Microsoft.EntityFrameworkCore.*", true);
+            nLogConfig.AddRule(LogLevel.Info, LogLevel.Warn, logFile, "Microsoft.AspNetCore.*", true);
+            nLogConfig.AddRule(LogLevel.Info, LogLevel.Warn, logFile, "System.Net.Http.HttpClient.Refit.*", true);
+            nLogConfig.AddRule(LogLevel.Info, LogLevel.Fatal, logConsole);
+            nLogConfig.AddRule(LogLevel.Debug, LogLevel.Fatal, logFile);
+
+            builder.Logging.ClearProviders();
+            builder.Services.AddLogging(m => m.AddNLog(nLogConfig));
         }
     }
 }

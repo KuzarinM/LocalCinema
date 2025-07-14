@@ -30,6 +30,8 @@ namespace OnlineСinema.Logic.Handlers.Commands.Titles
                             TitleId = title.Id,
                         });
 
+                        _logger.LogWarning("{titleName}\n{desctiption}", title.Name, description);
+
                         await _titleStorage.UpdateDescription(title, description);
 
                         break;
@@ -38,8 +40,11 @@ namespace OnlineСinema.Logic.Handlers.Commands.Titles
                     catch (Exception ex) 
                     {
                         _logger.LogError(ex, "Ошибка");
+
+                        await Task.Delay(1000);
                     }
                 }
+                await Task.Delay(1000);
 
             }
 

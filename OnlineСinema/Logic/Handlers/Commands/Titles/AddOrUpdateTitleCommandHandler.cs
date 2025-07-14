@@ -127,6 +127,8 @@ namespace OnlineСinema.Logic.Handlers.Commands.Titles
                 x.ToLowerInvariant() != title.Name.ToLowerInvariant() &&
                 !x.Contains("."));
 
+            potentialTags = potentialTags.Union(title.Tags.Select(x => x.Name)).Distinct();
+
             var tagsObjects = await _tagStorage.AddOrUpdateTags(potentialTags.ToArray());
 
             await _titleStorage.UpdateTagList(title, tagsObjects);

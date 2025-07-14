@@ -2,6 +2,9 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OnlineСinema.Logic.Handlers.Queries.Titles;
+using OnlineСinema.Models.Commands.Titles;
+using OnlineСinema.Models.Dtos.Titles;
 using OnlineСinema.Models.Queries.Titles;
 
 namespace OnlineСinema.Controllers
@@ -78,5 +81,24 @@ namespace OnlineСinema.Controllers
             },
             cancellationToken,
            null);
+
+        [HttpPatch("{id:guid}")]
+        public Task<IActionResult> UpdateTitle([FromRoute] Guid id, [FromBody] UpdateTitleDto dto, CancellationToken cancellationToken)
+            => MediatorSendRequest(new UpdateTitleQuery()
+            {
+                Id = id,
+                dto = dto,
+            },
+            cancellationToken,
+            null);
+
+        [HttpPost("/order")]
+        public Task<IActionResult> ChangeTitleStaffOrder([FromBody] List<OrderDto> dtos, CancellationToken cancellationToken)
+            => MediatorSendRequest(new ChangeOrderInTitleCommand()
+            {
+                Orders = dtos,
+            },
+            cancellationToken,
+            null);
     }
 }

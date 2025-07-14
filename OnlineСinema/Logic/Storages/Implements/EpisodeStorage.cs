@@ -15,6 +15,20 @@ namespace OnlineСinema.Logic.Storages.Implements
         CinemaDbContext dbContext
     ) : AbstractDbStorage<Episode, Guid>(logger, mapper, dbContext), IEpisodeStorage
     {
+        public async Task ChangeOrderIndexesByIds(params (Guid id, int index)[] values)
+        {
+            var models = await GetQueryable().Where(x => values.Select(x => x.id).Contains(x.Id)).ToListAsync();
+
+            var targetValues = values.ToDictionary(x => x.id, x => x.index);
+
+            foreach (var item in models)
+            {
+                item.Orderindex = targetValues[item.Id];
+            }
+
+            await SaveChangesAsync();
+        }
+
         public async Task DeleteExcept(Guid seasonId, List<string>? names, List<string>? paths)
         {
             names = names ?? [];
@@ -36,9 +50,29 @@ namespace OnlineСinema.Logic.Storages.Implements
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task<Episode> GetEpisodeWithTitleAndSeen(Guid id, Guid? userId)
+        {
+            var res = await GetQueryable()
+                .Include(x => x.UserSeens.Where(x => x.Userid == userId.ToString()))
+                .FirstOrDefaultAsync(x=>x.Id == id);
+
+            return res;
+        }
+
+        public async Task UpdateIsSeenById(Guid id, Guid userId, bool isSeen)
+        {
+            //todo
+        }
+
         protected override Task<Episode> UpdateItem(Episode source, object target)
         {
             throw new NotImplementedException();
         }
+
+        protected override IQueryable<Episode> AddIncludes(IQueryable<Episode> query)
+            => query
+                .Include(x => x.Seasone)
+                    .ThenInclude(x => x.Title).ThenInclude(x => x.Seasones).ThenInclude(x => x.Episodes)
+            ;
     }
 }

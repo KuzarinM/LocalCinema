@@ -27,5 +27,13 @@ namespace OnlineСinema.Controllers
             },
             cancellationToken,
             null);
+
+        [HttpPost("titles/reorder")]
+        public async Task<IActionResult> ReorderTitile(CancellationToken cancellationToken)
+            => await MediatorSendRequest(new AutomaticReorderEpisodesAndSeasonesCommand()
+            {
+            },
+            cancellationToken,
+            null);
     }
 }

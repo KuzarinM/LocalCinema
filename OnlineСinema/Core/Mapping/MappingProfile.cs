@@ -1,6 +1,8 @@
-﻿using AutoMapper;
+﻿using AdstractHelpers.Storage.Abstraction.Models;
+using AutoMapper;
 using OnlineСinema.Models;
 using OnlineСinema.Models.Dtos.Images;
+using OnlineСinema.Models.Dtos.Tags;
 using OnlineСinema.Models.Dtos.Titles;
 using OnlineСinema.Models.Internal.Synchonisation;
 
@@ -58,6 +60,45 @@ namespace OnlineСinema.Core.Mapping
                 .ForMember(x => x.Id, opt => opt.MapFrom(x => Guid.NewGuid()))
                 .ForMember(x => x.Name, opt => opt.MapFrom(x => x))
                 ;
+
+            CreateMap<Tag, TagDto>()
+                .ForMember(x => x.Lable, opt => opt.MapFrom(x => x.Name))
+                ;
+
+            CreateMap<Episode, TitleVideoInformaionDto>()
+                .ForMember(x => x.TitleId, opt => opt.MapFrom(x => x.Seasone.Title.Id))
+                .ForMember(x => x.TitleName, opt => opt.MapFrom(x => x.Seasone.Title.Name))
+                .ForMember(x => x.EpisodeName, opt => opt.MapFrom(x => $"{x.Seasone.Name} {Path.GetFileNameWithoutExtension(x.Name)}"))
+                .ForMember(x => x.NextId, opt => opt.MapFrom(x => GetNextId(x)))
+                .ForMember(x => x.PreveousId, opt => opt.MapFrom(x => GetPreveousId(x)))
+                .ForMember(x => x.IsSceen, opt => opt.MapFrom(x => x.UserSeens.Count() > 0))
+                ;
+
+            CreateMap<Title, TitleVideoInformaionDto>()
+                .ForMember(x => x.TitleId, opt => opt.MapFrom(x => x.Id))
+                .ForMember(x => x.TitleName, opt => opt.MapFrom(x => Path.GetFileNameWithoutExtension(x.Name)))
+                .ForMember(x => x.EpisodeName, opt => opt.MapFrom(x => ""))
+                .ForMember(x => x.IsSceen, opt => opt.MapFrom(x => x.UserSeens.Count() > 0))
+                ;
         }
+
+        private Guid? GetNextId(Episode episode)
+            => episode.Seasone.Episodes
+                    .OrderBy(x => x.Orderindex)
+                    .FirstOrDefault(y => y.Orderindex > episode.Orderindex)?.Id
+                    ?? episode.Seasone.Title.Seasones
+                    .OrderBy(x => x.Orderindex)
+                    .FirstOrDefault(y => y.Orderindex > episode.Seasone.Orderindex)?.Episodes.
+                        OrderBy(x => x.Orderindex).FirstOrDefault()?.Id;
+
+        private Guid? GetPreveousId(Episode episode)
+            => episode.Seasone.Episodes
+                    .OrderByDescending(x => x.Orderindex)
+                    .FirstOrDefault(y => y.Orderindex < episode.Orderindex)?.Id
+                    ?? episode.Seasone.Title.Seasones
+                    .OrderByDescending(x => x.Orderindex)
+                    .FirstOrDefault(y => y.Orderindex < episode.Seasone.Orderindex)?.Episodes.
+                        OrderByDescending(x => x.Orderindex).FirstOrDefault()?.Id;
+
     }
 }

@@ -13,6 +13,20 @@ namespace OnlineСinema.Logic.Storages.Implements
         CinemaDbContext dbContext
         ) : AbstractDbStorage<Seasone, Guid>(logger, mapper, dbContext), ISeasonStorage
     {
+
+        public async Task ChangeOrderIndexesByIds(params (Guid id, int index)[] values)
+        {
+            var models = await GetQueryable().Where(x => values.Select(x => x.id).Contains(x.Id)).ToListAsync();
+
+            var targetValues = values.ToDictionary(x => x.id, x => x.index);
+
+            foreach (var item in models)
+            {
+                item.Orderindex = targetValues[item.Id];
+            }
+
+            await SaveChangesAsync();
+        }
         public async Task DeleteExcept(Guid titleId, List<string>? names, List<string>? paths)
         {
             names = names ?? [];

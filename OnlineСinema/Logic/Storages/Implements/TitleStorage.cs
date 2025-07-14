@@ -55,7 +55,8 @@ namespace OnlineСinema.Logic.Storages.Implements
             bool? isFilm = null, 
             List<string>? tags = null,
             int? pageSize = null, 
-            int? pageNumber = null
+            int? pageNumber = null,
+            List<string>? forbedenTags = null
         )
         {
             var items = GetQueryable()
@@ -63,7 +64,8 @@ namespace OnlineСinema.Logic.Storages.Implements
                 .Where(x =>
                     (string.IsNullOrEmpty(search) || x.Name.Contains(search)) &&
                     (isFilm == null || x.Isfilm == isFilm) &&
-                    (tags == null || tags.All(y=>x.Tags.Select(x=>x.Name).Contains(y)))
+                    (tags == null || tags.All(y=>x.Tags.Select(x=>x.Name).Contains(y))) &&
+                    (forbedenTags == null || !forbedenTags.Any(y => x.Tags.Select(x => x.Name).Contains(y)))
                 );
 
             if (pageSize != null && pageNumber != null)
@@ -102,16 +104,19 @@ namespace OnlineСinema.Logic.Storages.Implements
             bool? isFilm = null,
             List<string>? tags = null,
             int? pageSize = null,
-            int? pageNumber = null
+            int? pageNumber = null,
+             List<string>? forbedenTags = null
         )
         {
             var items = GetQueryable()
                 .Include(x => x.UserSeens.Where(x => !userId.HasValue || x.Userid == userId.ToString()))
+                .Where(x=> forbedenTags == null || !forbedenTags.Any(y => x.Tags.Select(x => x.Name).Contains(y)))
                 .Where(x =>
                     (string.IsNullOrEmpty(search) || x.Name.Contains(search)) &&
                     (isFilm == null || x.Isfilm == isFilm) &&
                     (tags == null || tags.All(y => x.Tags.Select(x => x.Name).Contains(y)))
-                );
+                )
+                ;
 
             if (pageSize != null && pageNumber != null)
             {
@@ -172,8 +177,9 @@ namespace OnlineСinema.Logic.Storages.Implements
 
         protected override IQueryable<Title> AddIncludes(IQueryable<Title> query) => query
             .Include(x => x.Tags)
-            .Include(x => x.Seasones)
-                .ThenInclude(x => x.Episodes);
+            .Include(x => x.Seasones.OrderBy(x=>x.Orderindex))
+                .ThenInclude(x => x.Episodes.OrderBy(x=>x.Orderindex))
+            ;
 
 
         protected override Task<Title> UpdateItem(Title source, object target)

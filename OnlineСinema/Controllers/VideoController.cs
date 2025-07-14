@@ -28,5 +28,12 @@ namespace OnlineСinema.Controllers
 
             return PhysicalFile(res.Data.Path, res.Data.ContentType, enableRangeProcessing: true);
         }
+
+        [HttpGet("info/{id:guid}")]
+        public Task<IActionResult> GetVideoInfo([FromRoute] Guid id) => MediatorSendRequest(new TitleVideoInformationQuery()
+        {
+            Id = id,
+            Principal = HttpContext.User
+        });
     }
 }

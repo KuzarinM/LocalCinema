@@ -8,5 +8,7 @@ namespace OnlineСinema.Logic.Storages.Interfases
         public Task DeleteExcept(Guid titleId, List<string>? names, List<string>? paths);
 
         public Task UpdateNameAndPath(Seasone seasone, string Name, string Path);
+
+        public Task ChangeOrderIndexesByIds(params (Guid id, int index)[] values);
     }
 }

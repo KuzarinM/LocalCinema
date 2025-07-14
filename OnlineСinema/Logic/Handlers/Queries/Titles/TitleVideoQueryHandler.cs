@@ -36,16 +36,17 @@ namespace OnlineСinema.Logic.Handlers.Queries.Titles
                 });
             }
 
-            var episode = await _episodeStorage.GetItemById(request.Id);
+            string? path = null;
+            bool isEpisode = false;
+            Guid? Id = null;
 
-            TitleVideoModel? res = null;
+            var episode = await _episodeStorage.GetItemById(request.Id);
 
             if(episode != null)
             {
-                res = new() {
-                    Path = episode.Path,
-                    ContentType = GetMediaType(episode.Path)
-                };
+                path = episode.Path;
+                isEpisode = true;
+                Id = episode.Id;
             }
             else
             {
@@ -56,23 +57,28 @@ namespace OnlineСinema.Logic.Handlers.Queries.Titles
                     return Error();
                 }
 
-                res = new()
-                {
-                    Path = film.Path,
-                    ContentType = GetMediaType(film.Path)
-                };
+                path = film.Path;
+                isEpisode = false;
+                Id = film.Id;
             }
 
-            if (!File.Exists(res.Path))
+            if (!File.Exists(path))
                 return Error();
 
-            if(Path.GetExtension(res.Path).Replace(".","") != "mp4")
+            if(Path.GetExtension(path).Replace(".","") != "mp4")
             {
-                res.Path = await _titleCashStorage.ConvertToMp4InBackground(request.Id, res.Path, _convertationConfiguration.UseGpuAxeliration);
-                res.ContentType = GetMediaType(res.Path);
+                path = await _titleCashStorage.ConvertToMp4InBackground(
+                    request.Id, 
+                    path, 
+                    _convertationConfiguration.UseGpuAxeliration
+                );
             }
 
-            return Success(res);
+            return Success(new TitleVideoModel()
+            {
+                Path = path,
+                ContentType = GetMediaType(path)
+            });
         }
 
         private string GetMediaType(string path)

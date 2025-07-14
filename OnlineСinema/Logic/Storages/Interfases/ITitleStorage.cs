@@ -21,7 +21,8 @@ namespace OnlineСinema.Logic.Storages.Interfases
             bool? isFilm,
             List<string>? tags,
             int? pageSize = null, 
-            int? pageNumber = null
+            int? pageNumber = null,
+            List<string>? forbedenTags = null
         );
 
         public Task<PaginationModel<TitleDto>> GetTitles(
@@ -30,7 +31,8 @@ namespace OnlineСinema.Logic.Storages.Interfases
             bool? isFilm,
             List<string>? tags,
             int? pageSize = null,
-            int? pageNumber = null
+            int? pageNumber = null,
+             List<string>? forbedenTags = null
         );
 
 
