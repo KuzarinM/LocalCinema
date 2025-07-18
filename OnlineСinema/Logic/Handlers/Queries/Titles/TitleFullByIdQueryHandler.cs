@@ -7,6 +7,7 @@ using OnlineСinema.Logic.Storages.Interfases;
 using OnlineСinema.Models.Dtos.Titles;
 using OnlineСinema.Models.Queries.Titles;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace OnlineСinema.Logic.Handlers.Queries.Titles
 {
@@ -22,7 +23,7 @@ namespace OnlineСinema.Logic.Handlers.Queries.Titles
         public async override Task<ResponseModel<TitleFullDto>> HandleAsync(TitleFullByIdQuery request, CancellationToken cancellationToken)
         {
             var userId = Guid.TryParse(
-                request.Principal.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.NameId)?.Value,
+                request.Principal.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
                 out var tmp)
                 ? tmp
                 : (Guid?)null;

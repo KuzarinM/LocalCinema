@@ -12,5 +12,9 @@ namespace OnlineСinema.Logic.Storages.Interfases
         public Task ChangeOrderIndexesByIds(params (Guid id, int index)[] values);
 
         public Task<Episode> GetEpisodeWithTitleAndSeen(Guid id, Guid? userId);
+
+        public Task UpdateIsSceen(Episode episode, Guid? userId = null, bool isSceen = true);
+
+        public Task<Episode?> GetEpisodeWithSceenById(Guid id, Guid? userId = null);
     }
 }

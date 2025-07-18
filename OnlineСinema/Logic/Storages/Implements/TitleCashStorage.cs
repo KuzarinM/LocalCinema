@@ -51,8 +51,9 @@ namespace OnlineСinema.Logic.Storages.Implements
 
             while (true)
             {
-                if(File.Exists(resPath) && (new FileInfo(resPath)).Length > 10)
-                {
+                // На всякий добавим проверку. Мол, если оно больше 1 МБ, то ноавреное уже можно запустить проигрыватель
+                if (File.Exists(resPath) && (new FileInfo(resPath)).Length > 1*1024*1024*8) 
+                { 
                     return resPath;
                 }
 

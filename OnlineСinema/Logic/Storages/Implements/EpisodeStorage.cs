@@ -59,9 +59,28 @@ namespace OnlineСinema.Logic.Storages.Implements
             return res;
         }
 
-        public async Task UpdateIsSeenById(Guid id, Guid userId, bool isSeen)
+        public async Task UpdateIsSceen(Episode episode, Guid? userId = null, bool isSceen = true)
         {
-            //todo
+            if (userId == null)
+                return;
+
+            if (isSceen && !episode.UserSeens.Any())
+            {
+                episode.UserSeens.Add(new()
+                {
+                    Id = Guid.NewGuid(),
+                    Episodeid = episode.Id,
+                    Userid = userId.ToString()
+                });
+
+                await SaveChangesAsync();
+            }
+            else if(!isSceen && episode.UserSeens.Any())
+            {
+                _dbContext.Remove(episode.UserSeens.First());
+
+                await SaveChangesAsync();
+            }
         }
 
         protected override Task<Episode> UpdateItem(Episode source, object target)
@@ -74,5 +93,10 @@ namespace OnlineСinema.Logic.Storages.Implements
                 .Include(x => x.Seasone)
                     .ThenInclude(x => x.Title).ThenInclude(x => x.Seasones).ThenInclude(x => x.Episodes)
             ;
+
+        public async Task<Episode?> GetEpisodeWithSceenById(Guid id, Guid? userId = null) 
+            => await GetQueryable()
+                .Include(x => x.UserSeens.Where(y => userId == null || y.Userid == userId.ToString()))
+                .FirstOrDefaultAsync(x => x.Id == id);
     }
 }

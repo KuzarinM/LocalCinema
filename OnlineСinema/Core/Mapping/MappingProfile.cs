@@ -1,9 +1,11 @@
 ﻿using AdstractHelpers.Storage.Abstraction.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using OnlineСinema.Models;
 using OnlineСinema.Models.Dtos.Images;
 using OnlineСinema.Models.Dtos.Tags;
 using OnlineСinema.Models.Dtos.Titles;
+using OnlineСinema.Models.Dtos.Users;
 using OnlineСinema.Models.Internal.Synchonisation;
 
 namespace OnlineСinema.Core.Mapping
@@ -21,7 +23,15 @@ namespace OnlineСinema.Core.Mapping
             CreateMap<Title, TitleFullDto>()
                 .ForMember(x=>x.Tags, opt => opt.MapFrom(x=>x.Tags.Select(x=>x.Name)))
                 .ForMember(x=>x.Seasons, opt => opt.MapFrom(x=>x.Seasones))
-                .ForMember(x => x.IsSeen, opt => opt.MapFrom(x => x.UserSeens.Count() > 0))
+                .ForMember(x=>x.LastSceenEpisode, opt => opt.MapFrom(x=>GetLastSceenData(x)))
+                .ForMember(x => x.IsSeen, opt => opt.MapFrom(x
+                    => x.UserSeens.Count() > 0
+                    || x.Seasones.Any(y
+                        => y.Episodes.Any(z
+                            => z.UserSeens.Count() > 0)
+                        )
+                    )
+                )
                 ;
 
             CreateMap<Image, ImageDto>()
@@ -37,7 +47,14 @@ namespace OnlineСinema.Core.Mapping
                 .ForMember(x => x.Tags, opt => opt.MapFrom(x => x.Tags.Select(x => x.Name)))
                 .ForMember(x => x.SeasonesCount, opt => opt.MapFrom(x => x.Seasones.Count()))
                 .ForMember(x => x.EpisodesCount, opt => opt.MapFrom(x => x.Seasones.Select(y=>y.Episodes.Count()).Sum()))
-                .ForMember(x=>x.IsSeen, opt => opt.MapFrom(x=>x.UserSeens.Count()>0))
+                .ForMember(x=>x.IsSeen, opt => opt.MapFrom(x
+                    =>x.UserSeens.Count()>0 
+                    || x.Seasones.Any(y
+                        =>y.Episodes.Any(z
+                            =>z.UserSeens.Count()>0)
+                        )
+                    )
+                )
                 ;
 
             CreateMap<MediaModel, Title>()
@@ -68,7 +85,7 @@ namespace OnlineСinema.Core.Mapping
             CreateMap<Episode, TitleVideoInformaionDto>()
                 .ForMember(x => x.TitleId, opt => opt.MapFrom(x => x.Seasone.Title.Id))
                 .ForMember(x => x.TitleName, opt => opt.MapFrom(x => x.Seasone.Title.Name))
-                .ForMember(x => x.EpisodeName, opt => opt.MapFrom(x => $"{x.Seasone.Name} {Path.GetFileNameWithoutExtension(x.Name)}"))
+                .ForMember(x => x.EpisodeName, opt => opt.MapFrom(x => $"{x.Seasone.Name} {x.Name}"))
                 .ForMember(x => x.NextId, opt => opt.MapFrom(x => GetNextId(x)))
                 .ForMember(x => x.PreveousId, opt => opt.MapFrom(x => GetPreveousId(x)))
                 .ForMember(x => x.IsSceen, opt => opt.MapFrom(x => x.UserSeens.Count() > 0))
@@ -76,9 +93,14 @@ namespace OnlineСinema.Core.Mapping
 
             CreateMap<Title, TitleVideoInformaionDto>()
                 .ForMember(x => x.TitleId, opt => opt.MapFrom(x => x.Id))
-                .ForMember(x => x.TitleName, opt => opt.MapFrom(x => Path.GetFileNameWithoutExtension(x.Name)))
+                .ForMember(x => x.TitleName, opt => opt.MapFrom(x => x.Name))
                 .ForMember(x => x.EpisodeName, opt => opt.MapFrom(x => ""))
                 .ForMember(x => x.IsSceen, opt => opt.MapFrom(x => x.UserSeens.Count() > 0))
+                ;
+
+            CreateMap<IdentityUser, UserViewDto>()
+                .ForMember(x=>x.Login, opt=>opt.MapFrom(x=>x.UserName))
+                .ForMember(x=>x.IsActive, opt => opt.MapFrom(x => x.EmailConfirmed))
                 ;
         }
 
@@ -99,6 +121,35 @@ namespace OnlineСinema.Core.Mapping
                     .OrderByDescending(x => x.Orderindex)
                     .FirstOrDefault(y => y.Orderindex < episode.Seasone.Orderindex)?.Episodes.
                         OrderByDescending(x => x.Orderindex).FirstOrDefault()?.Id;
+
+        private EpisodeSmallDto? GetLastSceenData(Title title)
+        {
+            if(title.Seasones.Count == 0)
+            {
+                return null;
+            }
+                 
+            var data = title.Seasones
+                            .SelectMany(y =>
+                            y.Episodes
+                                .Where(z => z.UserSeens.Count() > 0)
+                                .Select(z =>
+                                    new EpisodeSmallDto()
+                                    {
+                                        SeasoneId = y.Id,
+                                        SeasoneOrderIndex = y.Orderindex,
+                                        SeasoneName = y.Name,
+                                        EpisodeId = z.Id,
+                                        EpisodeOrderIndex = z.Orderindex,
+                                        EpisodeName = z.Name,
+                                    }
+                                )
+                            )
+                        .OrderByDescending(x => x.SeasoneOrderIndex + 1000 + x.EpisodeOrderIndex)
+                        .FirstOrDefault();
+
+            return data;
+        }
 
     }
 }

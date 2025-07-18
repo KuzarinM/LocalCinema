@@ -3,16 +3,19 @@ using AdstractHelpers.Mediator.Models;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using OnlineСinema.Models.Commands.Users;
+using tryAGI.OpenAI;
 
 namespace OnlineСinema.Logic.Handlers.Commands.Users
 {
     public class RegisterCommandHandler(
         ILogger<RegisterCommandHandler> logger, 
-        UserManager<IdentityUser> userManager
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager
         ) : AbstractCommandHandler<RegisterCommand>(logger)
     {
 
         private readonly UserManager<IdentityUser> _userManager = userManager;
+        private readonly RoleManager<IdentityRole> _roleManager = roleManager;
         public override async Task<ResponseModel> HandleAsync(RegisterCommand request, CancellationToken cancellationToken)
         {
             var user = new IdentityUser()
@@ -28,6 +31,14 @@ namespace OnlineСinema.Logic.Handlers.Commands.Users
 
             if (res.Succeeded) 
             {
+                if(await _roleManager.FindByNameAsync("user") == null)
+                {
+                    await _roleManager.CreateAsync(new()
+                    {
+                        Name = "user"
+                    });
+                }
+
                 var roleRes = await _userManager.AddToRoleAsync(user, "User");
 
                 if (!roleRes.Succeeded) {

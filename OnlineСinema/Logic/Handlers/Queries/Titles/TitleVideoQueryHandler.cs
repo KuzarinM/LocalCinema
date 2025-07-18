@@ -1,12 +1,14 @@
 ﻿using AdstractHelpers.Mediator.Abstractions;
 using AdstractHelpers.Mediator.Models;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
 using OnlineСinema.Core.Configurations;
 using OnlineСinema.Logic.Storages.Interfases;
 using OnlineСinema.Models.Internal.Titles;
 using OnlineСinema.Models.Queries.Titles;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace OnlineСinema.Logic.Handlers.Queries.Titles
 {
@@ -25,6 +27,7 @@ namespace OnlineСinema.Logic.Handlers.Queries.Titles
 
         public override async Task<ResponseModel<TitleVideoModel>> HandleAsync(TitleVideoQuery request, CancellationToken cancellationToken)
         {
+
             var cash = _titleCashStorage.GetFilePathFromCash(request.Id);
 
             if (!string.IsNullOrEmpty(cash))

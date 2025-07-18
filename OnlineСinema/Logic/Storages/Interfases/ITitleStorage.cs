@@ -13,6 +13,10 @@ namespace OnlineСinema.Logic.Storages.Interfases
 
         public Task<Title?> GetTitleById(Guid Id, Guid? userId = null);
 
+        public Task<Title?> UpdateIsFilm(Title source, bool IsFilm);
+
+        public Task UpdateIsSceen(Title title, Guid? userId = null, bool isSeen = true);
+
         public Task<List<Title>> GetTitlesWithoutDescription();
 
         public Task<PaginationModel<TitleFullDto>> GetFullTitles(

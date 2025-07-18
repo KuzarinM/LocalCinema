@@ -34,6 +34,9 @@ namespace OnlineСinema.Logic.Handlers.Queries.Titles
             if (request.dto.Coverimageid != null || request.dto.Tileimageid != null)
                 await _titleStorage.UpdateImages(model, request.dto.Tileimageid, request.dto.Coverimageid);
 
+            if (request.dto.Isfilm != null)
+                await _titleStorage.UpdateIsFilm(model, request.dto.Isfilm.Value);
+
             if(request.dto.Tags != null)
             {
                 var newTags = await _tagStorage.AddOrUpdateTags(request.dto.Tags.ToArray());

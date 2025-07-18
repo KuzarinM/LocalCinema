@@ -6,6 +6,7 @@ using OnlineСinema.Logic.Storages.Interfases;
 using OnlineСinema.Models.Dtos.Titles;
 using OnlineСinema.Models.Queries.Titles;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace OnlineСinema.Logic.Handlers.Queries.Titles
 {
@@ -22,8 +23,10 @@ namespace OnlineСinema.Logic.Handlers.Queries.Titles
 
         public async override Task<ResponseModel<TitleVideoInformaionDto>> HandleAsync(TitleVideoInformationQuery request, CancellationToken cancellationToken)
         {
+            var identity = request?.Principal.Identity as ClaimsIdentity;
+
             var userId = Guid.TryParse(
-                request?.Principal?.Claims?.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.NameId)?.Value,
+                identity?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
                 out var tmp)
                 ? tmp
                 : (Guid?)null;
@@ -33,6 +36,8 @@ namespace OnlineСinema.Logic.Handlers.Queries.Titles
 
             if(episode != null)
             {
+                await _episodeStorage.UpdateIsSceen(episode, userId, true);
+
                 return Success(_mapper.Map<TitleVideoInformaionDto>(episode));
             }
 
@@ -40,6 +45,8 @@ namespace OnlineСinema.Logic.Handlers.Queries.Titles
 
             if (title != null) 
             {
+                await _titleStorage.UpdateIsSceen(title, userId, true);
+
                 return Success(_mapper.Map<TitleVideoInformaionDto>(title));
             }
 

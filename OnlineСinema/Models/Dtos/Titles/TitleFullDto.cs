@@ -19,5 +19,7 @@
         public List<string> Tags { get; set; }
 
         public List<SeasonDto> Seasons { get; set; } = [];
+
+        public EpisodeSmallDto LastSceenEpisode { get; set; }
     }
 }

@@ -73,6 +73,16 @@ namespace OnlineСinema.Controllers
             cancellationToken,
            null);
 
+        [HttpDelete("{id:guid}")]
+        public Task<IActionResult> DeleteTitle([FromRoute] Guid id, CancellationToken cancellationToken)
+            => MediatorSendRequest(new DeleteTitleCommand()
+            {
+                Id = id,
+                Principal = HttpContext.User
+            },
+            cancellationToken,
+           null);
+
         [HttpGet("description/{id:guid}")]
         public Task<IActionResult> GenerateTitleDescription([FromRoute] Guid id, CancellationToken cancellationToken) 
             => MediatorSendRequest(new CreateTitleDescriptionQuery()
@@ -92,7 +102,7 @@ namespace OnlineСinema.Controllers
             cancellationToken,
             null);
 
-        [HttpPost("/order")]
+        [HttpPost("order")]
         public Task<IActionResult> ChangeTitleStaffOrder([FromBody] List<OrderDto> dtos, CancellationToken cancellationToken)
             => MediatorSendRequest(new ChangeOrderInTitleCommand()
             {
@@ -100,5 +110,7 @@ namespace OnlineСinema.Controllers
             },
             cancellationToken,
             null);
+
+
     }
 }

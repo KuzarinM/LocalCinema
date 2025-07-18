@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,8 @@ namespace OnlineСinema.Core.Extentions
         {
             _app = app;
 
+            var initTask = app.Services.CreateScope().ServiceProvider.GetRequiredService<IdentityInitializer>().Init();
+
             app.UseSwagger();
             app.UseSwaggerUI();
 
@@ -46,6 +49,28 @@ namespace OnlineСinema.Core.Extentions
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.Use(async (context, next) =>
+            {
+                var endpoint = context.GetEndpoint();
+                if (endpoint?.Metadata?.GetMetadata<IAllowAnonymous>() != null)
+                {
+                    await next();
+                    return;
+                }
+
+                string authHeader = context.Request.Headers["Authorization"];
+                bool hasToken = !string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ");
+
+                if (hasToken && context.Items.ContainsKey("TokenExpired"))
+                {
+                    context.Response.StatusCode = 401; // Unauthorized
+                    await context.Response.WriteAsync("Token expired");
+                    return;
+                }
+
+                await next();
+            });
 
             app.MapControllers();
 
@@ -66,6 +91,9 @@ namespace OnlineСinema.Core.Extentions
                     ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
                 }
             });
+
+            // Дожидаемся полного заврешнения всей инициализации
+            initTask.Wait();
         }
 
         public static void AddServices(this IServiceCollection services)
@@ -92,6 +120,9 @@ namespace OnlineСinema.Core.Extentions
             services.AddScoped<IEpisodeStorage, EpisodeStorage>();
             services.AddScoped<IImageStorage, ImageStorage>();
             services.AddScoped<ITitleCashStorage, TitleCashStorage>();
+            services.AddScoped<IUserStorage, UserStorage>();
+
+            services.AddScoped<IdentityInitializer>();
 
             services.AddHttpContextAccessor();
 
@@ -117,7 +148,20 @@ namespace OnlineСinema.Core.Extentions
                     ValidIssuer = config.TokenIssuer,
                     ValidAudience = config.TokenAudience,
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(config.RefrashTokenSecretKey))
+                        Encoding.UTF8.GetBytes(config.AccessTokenSecretKey))
+                };
+
+                // Обработчик неудачной аутентификации
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        if (context.Exception is SecurityTokenExpiredException)
+                        {
+                            context.HttpContext.Items["TokenExpired"] = true; // Помечаем просроченный токен
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
 

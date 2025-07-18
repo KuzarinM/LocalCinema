@@ -42,6 +42,9 @@ namespace OnlineСinema.Controllers
             if (res.IsError)
                 return StatusCode(res.StatusCode);
 
+                if (res.Data == null)
+                return BadRequest();
+
             return File(res.Data.Data, res.Data.MediaType);
         }
 

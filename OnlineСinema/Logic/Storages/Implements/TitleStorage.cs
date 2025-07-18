@@ -2,6 +2,7 @@
 using AdstractHelpers.Storage.Abstraction.Models;
 using AutoMapper;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineСinema.Database;
 using OnlineСinema.Logic.Storages.Interfases;
@@ -37,6 +38,16 @@ namespace OnlineСinema.Logic.Storages.Implements
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task<Title?> UpdateIsFilm(Title source, bool IsFilm)
+        {
+            if (source.Isfilm != IsFilm)
+                source.Isfilm = IsFilm;
+
+            await SaveChangesAsync();
+
+            return source;
+        }
+
         public Task<Title?> GetMedia(bool isFilm, string name, string path)
         {
             return GetQueryable().FirstOrDefaultAsync(x => x.Isfilm == isFilm && (x.Name == name || x.Path == path));
@@ -46,7 +57,32 @@ namespace OnlineСinema.Logic.Storages.Implements
         {
             return GetQueryable()
                 .Include(x => x.UserSeens.Where(x => !userId.HasValue || x.Userid == userId.ToString()))
+                .Include(x=>x.Seasones).ThenInclude(x=>x.Episodes).ThenInclude(x=> x.UserSeens.Where(x => !userId.HasValue || x.Userid == userId.ToString()))
                 .FirstOrDefaultAsync(x => x.Id == Id);
+        }
+
+        public async Task UpdateIsSceen(Title title, Guid? userId = null, bool isSceen = true)
+        {
+            if (userId == null)
+                return;
+
+            if (isSceen && !title.UserSeens.Any())
+            {
+                title.UserSeens.Add(new()
+                {
+                    Id = Guid.NewGuid(),
+                    Titleid = title.Id,
+                    Userid = userId.ToString()
+                });
+
+                await SaveChangesAsync();
+            }
+            else if (!isSceen && title.UserSeens.Any())
+            {
+                _dbContext.Remove(title.UserSeens.First());
+
+                await SaveChangesAsync();
+            }
         }
 
         public async Task<PaginationModel<TitleFullDto>> GetFullTitles(
@@ -61,6 +97,7 @@ namespace OnlineСinema.Logic.Storages.Implements
         {
             var items = GetQueryable()
                 .Include(x=>x.UserSeens.Where(x=> !userId.HasValue || x.Userid == userId.ToString()))
+                .Include(x => x.Seasones).ThenInclude(x => x.Episodes).ThenInclude(x => x.UserSeens.Where(x => !userId.HasValue || x.Userid == userId.ToString()))
                 .Where(x =>
                     (string.IsNullOrEmpty(search) || x.Name.Contains(search)) &&
                     (isFilm == null || x.Isfilm == isFilm) &&
@@ -110,6 +147,7 @@ namespace OnlineСinema.Logic.Storages.Implements
         {
             var items = GetQueryable()
                 .Include(x => x.UserSeens.Where(x => !userId.HasValue || x.Userid == userId.ToString()))
+                .Include(x=>x.Seasones).ThenInclude(x=>x.Episodes).ThenInclude(x => x.UserSeens.Where(x => !userId.HasValue || x.Userid == userId.ToString()))
                 .Where(x=> forbedenTags == null || !forbedenTags.Any(y => x.Tags.Select(x => x.Name).Contains(y)))
                 .Where(x =>
                     (string.IsNullOrEmpty(search) || x.Name.Contains(search)) &&

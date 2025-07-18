@@ -32,7 +32,7 @@ namespace OnlineСinema.Logic.Handlers.Commands.Titles
             }
 
             // Удалить тайтлы, которых более нет (пока хард делитом)
-            await _context.Titles.Where(x => !titles.Select(x => x.Name).Contains(x.Name)).ExecuteDeleteAsync();
+            //await _context.Titles.Where(x => !titles.Select(x => x.Name).Contains(x.Name)).ExecuteDeleteAsync();
 
             return Success();
 

@@ -2,8 +2,10 @@
 using DEnc;
 using DEnc.Models;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OnlineСinema.Models.Commands.Titles;
 using OnlineСinema.Models.Queries.Titles;
 
 namespace OnlineСinema.Controllers
@@ -18,7 +20,8 @@ namespace OnlineСinema.Controllers
 
             var res = await _mediator.Send(new TitleVideoQuery()
             {
-                Id = id
+                Id = id,
+                Principal = HttpContext.User
             });
 
             if (res.IsError)
@@ -33,6 +36,14 @@ namespace OnlineСinema.Controllers
         public Task<IActionResult> GetVideoInfo([FromRoute] Guid id) => MediatorSendRequest(new TitleVideoInformationQuery()
         {
             Id = id,
+            Principal = HttpContext.User
+        });
+
+        [HttpPost("{id:guid}/sceen")]
+        public Task<IActionResult> SetIsSceen([FromRoute] Guid id, bool isSceen) => MediatorSendRequest(new TitleSetIsSceenCommand()
+        {
+            ObjectId = id,
+            SettingValue = isSceen,
             Principal = HttpContext.User
         });
     }
