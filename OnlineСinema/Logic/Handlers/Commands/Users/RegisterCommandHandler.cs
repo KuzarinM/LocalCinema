@@ -2,6 +2,7 @@
 using AdstractHelpers.Mediator.Models;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using OnlineСinema.Logic.Storages.Interfases;
 using OnlineСinema.Models.Commands.Users;
 using tryAGI.OpenAI;
 
@@ -10,50 +11,30 @@ namespace OnlineСinema.Logic.Handlers.Commands.Users
     public class RegisterCommandHandler(
         ILogger<RegisterCommandHandler> logger, 
         UserManager<IdentityUser> userManager,
-        RoleManager<IdentityRole> roleManager
+        RoleManager<IdentityRole> roleManager,
+        IUserStorage userStorage
         ) : AbstractCommandHandler<RegisterCommand>(logger)
     {
 
         private readonly UserManager<IdentityUser> _userManager = userManager;
         private readonly RoleManager<IdentityRole> _roleManager = roleManager;
+        private readonly IUserStorage _userStorage = userStorage;
+
         public override async Task<ResponseModel> HandleAsync(RegisterCommand request, CancellationToken cancellationToken)
         {
-            var user = new IdentityUser()
+            request.User.Roles = request.User.Roles.Union(["user"]).Distinct().ToList();
+
+            try
             {
-                Email = request.Login,
-                UserName = request.Login,
-                NormalizedEmail = request.Login,
-                NormalizedUserName = request.Login,
-                EmailConfirmed = true,
-            };
-
-            var res = await _userManager.CreateAsync(user, request.Password);
-
-            if (res.Succeeded) 
-            {
-                if(await _roleManager.FindByNameAsync("user") == null)
-                {
-                    await _roleManager.CreateAsync(new()
-                    {
-                        Name = "user"
-                    });
-                }
-
-                var roleRes = await _userManager.AddToRoleAsync(user, "User");
-
-                if (!roleRes.Succeeded) {
-                    // Если не смогли в роль добавить - то удаляем
-                    await _userManager.DeleteAsync(user);
-
-                    return Error($"Не удлалось создать роль для пользователя:\n{string.Join("\n", roleRes.Errors.Select(x => x.Description).ToArray())}");
-                }
-
-                return Success();
+                var res = await _userStorage.AddUser(request.User);
             }
-            else
+            catch(ArgumentException ex)
             {
-                return Error($"Не удалось создать пользователя:\n{string.Join("\n", res.Errors.Select(x => x.Description).ToArray())}");
-            }            
+                return Error(ex.Message);
+            }
+
+
+            return Success();
         }
     }
 }

@@ -49,9 +49,8 @@ export default {
             var res = await fetch(url, request)
 
             if(res.status == 401 && path != this.__refrashUrl){
-                await this.__refrashToken()
-
-                res = await this.__makeRequest(method, path, data, headers, queries)
+                if(await this.__refrashToken())
+                    res = await this.__makeRequest(method, path, data, headers, queries)
             }
 
             return res
@@ -179,6 +178,8 @@ export default {
 
             query[this.__refrashTokenQueryFieldName] = this.__getRefrashToken()
 
+            this.__setAccesToken(null) // Чтобы точно всё работало
+
             var res = await this.__CreateResponce (await this.__makeRequest(
                 "GET",
                 this.__refrashUrl,
@@ -192,7 +193,10 @@ export default {
             if(res.code == 200){
                 this.__setAccesToken(res.body.accessToken)
                 this.__setRefrashToken(res.body.refrachToken)
+
+                return true
             }
+            return false;
         },
         __getAccessToken(){
             return localStorage.getItem("accessToken") 

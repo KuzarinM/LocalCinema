@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OnlineСinema.Logic.Handlers.Queries.Users;
 using OnlineСinema.Models.Commands.Users;
+using OnlineСinema.Models.Dtos.Users;
 using OnlineСinema.Models.Enums;
 using OnlineСinema.Models.Queries.Users;
 using System.Threading;
@@ -13,6 +14,7 @@ namespace OnlineСinema.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AuthorizeOneOfRoles("admin", "manage_user")]
     public class UserController(IMediator mediator) : MediatorContoller(mediator)
     {
         [HttpPost("login")]
@@ -21,9 +23,13 @@ namespace OnlineСinema.Controllers
             => await MediatorSendRequest(logInQuery, cancellationToken, null);
 
         [HttpPost("register")]
-        [AllowAnonymous]
-        public async Task<IActionResult> Register(RegisterCommand registerModel, CancellationToken cancellationToken)
-            => await MediatorSendRequest(registerModel, cancellationToken, null);
+        public async Task<IActionResult> Register(UserCreateDto createDto, CancellationToken cancellationToken)
+            => await MediatorSendRequest(new RegisterCommand()
+            {
+                User = createDto
+            }, 
+            cancellationToken, 
+            null);
 
         [HttpGet("refrash")]
         [AllowAnonymous]
@@ -36,6 +42,7 @@ namespace OnlineСinema.Controllers
             null);
 
         [HttpGet("check")]
+        [AllowAnonymous]
         public async Task<IActionResult> CheckPermitions([FromQuery] List<Permitions> perm, CancellationToken cancellationToken)
             => await MediatorSendRequest(new CheckUserPermitionQuery()
             {
@@ -68,6 +75,16 @@ namespace OnlineСinema.Controllers
             => await MediatorSendRequest(new UserByIdQuery()
             {
                 UserId = id
+            },
+            cancellationToken,
+            null);
+
+        [HttpPatch("{id:guid}")]
+        public async Task<IActionResult> GetUserById([FromRoute] Guid id, [FromBody] UserUpdateDto updateDto, CancellationToken cancellationToken)
+            => await MediatorSendRequest(new UpdateUserQuery()
+            {
+                Id = id,
+                UpdateDto = updateDto,
             },
             cancellationToken,
             null);

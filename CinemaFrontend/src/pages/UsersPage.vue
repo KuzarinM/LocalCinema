@@ -9,7 +9,12 @@ export default{
         return{
             data:[],
             editedUser:{},
-            createdUser:{},
+            createdUser:{
+                login:"",
+                email:"",
+                roles:[],
+                password:""
+            },
             pageData:{
                 pageIndex: 1,
                 pageCount: 1,
@@ -31,6 +36,12 @@ export default{
                     ProperyName: "isActive",
                     DisplayName:"Статус",
                     Type:"checkbox",
+                    CharLimit:null
+                },
+                {
+                    ProperyName: "login",
+                    DisplayName:"Имя пользоватля",
+                    Type:"text",
                     CharLimit:null
                 },
                 {
@@ -71,8 +82,8 @@ export default{
                     },
                     {
                         propertyName:"isActive",
-                        displayName:"Включен?",
-                        description:"",
+                        displayName:"Активный пользователь",
+                        description:"Если false - то пользователь заблокирован",
                         type:"checkbox",
                         readoly:false,
                     }
@@ -83,26 +94,37 @@ export default{
                         displayName:"Список ролей",
                         description:"",
                         type:"multi-select",
+                        canCreate:true,
                         options:[],
                         readoly:false
                     }
+                ],
+                "Смена пароля":[
+                    {
+                        propertyName:"oldPassword",
+                        displayName:"Старый пароль",
+                        description:"",
+                        type:"password",
+                        readoly:false
+                    },
+                    {
+                        propertyName:"newPassword",
+                        displayName:"Новый пароль",
+                        description:"",
+                        type:"password",
+                        readoly:false
+                    },
                 ]
             },
             createModalFields:{
                 "Основные данные":[
-                    {
-                        propertyName:"id",
-                        displayName:"Id подключения",
-                        description:"Идентифкатор Подключения",
-                        type:"string",
-                        readoly:true,
-                    },
                     {
                         propertyName:"login",
                         displayName:"Логин",
                         description:"Логин пользователя",
                         type:"string",
                         readoly:false,
+                        required:true
                     },
                     {
                         propertyName:"email",
@@ -110,13 +132,7 @@ export default{
                         description:"Адрес электронной почты",
                         type:"email",
                         readoly:false,
-                    },
-                    {
-                        propertyName:"isActive",
-                        displayName:"Включен?",
-                        description:"",
-                        type:"checkbox",
-                        readoly:false,
+                        required:true
                     }
                 ],
                 "Роли":[
@@ -125,9 +141,28 @@ export default{
                         displayName:"Список ролей",
                         description:"",
                         type:"multi-select",
+                        canCreate:true,
                         options:[],
-                        readoly:false
+                        readoly:false,
                     }
+                ],
+                "Пароль":[
+                    {
+                        propertyName:"password",
+                        displayName:"Пароль",
+                        description:"",
+                        type:"password",
+                        readoly:false,
+                        required:true
+                    },
+                    {
+                        propertyName:"passwordConfirm",
+                        displayName:"Повторите пароль",
+                        description:"",
+                        type:"password",
+                        readoly:false,
+                        required:true
+                    },
                 ]
             }
         }
@@ -173,14 +208,60 @@ export default{
                 this.createModalFields["Роли"][0].options = rolsData
             }
         },
-        async DeleteUser(model){
+        async DeleteUser(){
             console.log("Delete",this.editedUser)
         },
-        async UpdateUser(model){
-            console.log("Update", this.editedUser)
+        async UpdateUser(){
+
+            var updateDto = {
+                login:this.editedUser.login,
+                email:this.editedUser.email,
+                roles:this.editedUser.roles,
+                enabled:this.editedUser.isActive,
+                oldPassword:this.editedUser.oldPassword,
+                newPassword:this.editedUser.newPassword
+            }
+
+            console.log(updateDto)
+
+            var res = await this.UpdateUserById(this.editedUser.id, updateDto)
+
+            if(res.code == 200){
+                this.editedUser == res.body
+            }
+
+            await this.LoadData();
         },
         async AddUser(){
-            console.log("Add", this.createdUser)
+
+            if(this.createdUser.password != this.createdUser.passwordConfirm){
+                alert("Пароли не совпадают")
+                return;
+            }
+
+            var res = await this.Register(
+                this.createdUser.login,
+                this.createdUser.email,
+                this.createdUser.roles,
+                this.createdUser.password
+            )
+
+            if(res.code == 200 || res.code == 204){
+                this.createdUser = 
+                {
+                    login:"",
+                    email:"",
+                    roles:[],
+                    password:""
+                }
+
+                this.$refs.createModal.Close()
+
+                await this.LoadData();
+            }
+            else{
+                alert(res.text)
+            }
         },
         async OpenUser(model){
             var user = await this.GetUserById(model.id)

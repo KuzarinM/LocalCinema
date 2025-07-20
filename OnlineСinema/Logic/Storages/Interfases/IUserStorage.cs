@@ -15,5 +15,17 @@ namespace OnlineСinema.Logic.Storages.Interfases
         public Task<IdentityUser?> AddUser(UserCreateDto createDto);
 
         public Task<List<string>> GetRoles();
+
+        public Task AddRolesIfNeeded(List<string> roles);
+
+        public  Task UpdateUserName(IdentityUser user, string userName);
+
+        public Task UpdateEmail(IdentityUser user, string email);
+
+        public Task UpdatePassword(IdentityUser user, string oldPassword, string newPassword);
+
+        public Task UpdateRoles(IdentityUser user, List<string> targetRoles);
+
+        public Task UpdateEnabled(IdentityUser user, bool newValue);
     }
 }

@@ -142,6 +142,16 @@
               Галерея
           </RouterLink>
           </li>
+          <li class="nav-item">
+            <RouterLink 
+              class="nav-link" 
+                activeClass ="nav-link active" 
+              :to="{ name: 'users' }"
+              v-if="this.permitions.ManageUser"
+            >
+              Пользователи
+          </RouterLink>
+          </li>
         </ul>
         <div>
           <RouterLink 

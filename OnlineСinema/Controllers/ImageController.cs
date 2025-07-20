@@ -1,5 +1,6 @@
 ﻿using AdstractHelpers.Controller;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ namespace OnlineСinema.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AuthorizeOneOfRoles("admin", "edit_galery")]
     public class ImageController(IMediator mediator) : MediatorContoller(mediator)
     {
         [HttpPost]
@@ -32,6 +34,7 @@ namespace OnlineСinema.Controllers
         }
 
         [HttpGet("{id:guid}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetImage([FromRoute] Guid id, CancellationToken cancellationToken)
         {
             var res = await _mediator.Send(new ImageByIdQuery()
@@ -59,7 +62,7 @@ namespace OnlineСinema.Controllers
 
 
         [HttpGet]
-        public Task<IActionResult> GetImage(string? search, int pageSize = 10, int pageNumber = 0, CancellationToken cancellationToken = default) =>
+        public Task<IActionResult> GetImages(string? search, int pageSize = 10, int pageNumber = 0, CancellationToken cancellationToken = default) =>
             MediatorSendRequest(new ImageListQuery()
                 {
                     Search = search,

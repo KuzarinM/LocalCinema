@@ -17,12 +17,14 @@ const UserApiMixine = {
                 null
             ));
         },
-        async Register(login, password){
+        async Register(username, email, roles, password){
             return await this.__CreateResponce(await this.__makeRequest(
                 "POST",
                 "/User/register",
                 {
-                    "login":login,
+                    "username":username,
+                    "email":email,
+                    "roles":roles,
                     "password":password
                 },
                 null,
@@ -69,6 +71,15 @@ const UserApiMixine = {
                 "GET",
                 `/User/${id}`,
                 null,
+                null,
+                null
+            ));
+        },
+        async UpdateUserById(id, model){
+            return await this.__CreateResponce(await this.__makeRequest(
+                "PATCH",
+                `/User/${id}`,
+                model,
                 null,
                 null
             ));

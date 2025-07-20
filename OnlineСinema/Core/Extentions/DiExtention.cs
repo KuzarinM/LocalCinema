@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using AdstractHelpers.Identity.Providers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
@@ -124,6 +125,9 @@ namespace OnlineСinema.Core.Extentions
 
             services.AddScoped<IdentityInitializer>();
 
+            services.AddSingleton<IAuthorizationHandler, OneOfRolesHandler>();
+            services.AddSingleton<IAuthorizationPolicyProvider, CustomAuthorizationPolicyProvider>();
+
             services.AddHttpContextAccessor();
 
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining(typeof(Program)));
@@ -163,6 +167,13 @@ namespace OnlineСinema.Core.Extentions
                         return Task.CompletedTask;
                     }
                 };
+            });
+
+            services.AddAuthorization(options =>
+            {
+                // Динамическая регистрация политик при их использовании
+                options.AddPolicy("OneOfRolesProvider", policyBuilder =>
+                    policyBuilder.Requirements.Add(new OneOfRolesRequirement()));
             });
 
             services.AddControllers();

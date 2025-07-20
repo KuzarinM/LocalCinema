@@ -10,6 +10,7 @@ import PlayerPage from './pages/PlayerPage.vue'
 import ImageGalery from './components/Common/ImageGalery.vue'
 import LoginPage from './pages/LoginPage.vue'
 import UsersPage from './pages/UsersPage.vue'
+import AdminPage from './pages/AdminPage.vue'
 
 const routes = [
     { path: '/', redirect:"films"},
@@ -53,6 +54,11 @@ const routes = [
       path: '/users', 
       name:"users", 
       component: UsersPage,
+    },
+        { 
+      path: '/admin', 
+      name:"admin", 
+      component: AdminPage,
     },
     // { path: '/connections', name:"connections", component: ConnectionsPage},
     // { path: '/chanels', name:"chanels", component: ChanelsPage},

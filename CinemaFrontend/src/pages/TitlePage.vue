@@ -338,7 +338,7 @@ export default{
                     v-if="!this.isEditor"
                     class="d-flex flex-wrap mb-2"
                 >
-                    <p class="tag-outfit me-2 mb-2" v-for="tag in this.model.tags">{{ tag }}</p>
+                    <p class="tag-outfit me-2 mb-2 px-1" v-for="tag in this.model.tags">{{ tag }}</p>
                 </div>
                 <div
                     v-else

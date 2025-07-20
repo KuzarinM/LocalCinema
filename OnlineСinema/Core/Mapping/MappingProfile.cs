@@ -100,7 +100,7 @@ namespace OnlineСinema.Core.Mapping
 
             CreateMap<IdentityUser, UserViewDto>()
                 .ForMember(x=>x.Login, opt=>opt.MapFrom(x=>x.UserName))
-                .ForMember(x=>x.IsActive, opt => opt.MapFrom(x => x.EmailConfirmed))
+                .ForMember(x=>x.IsActive, opt => opt.MapFrom(x => x.LockoutEnabled))
                 ;
         }
 

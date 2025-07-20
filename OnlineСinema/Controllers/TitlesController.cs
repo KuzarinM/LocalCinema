@@ -74,6 +74,7 @@ namespace OnlineСinema.Controllers
            null);
 
         [HttpDelete("{id:guid}")]
+        [AuthorizeOneOfRoles("admin", "edit_titles")]
         public Task<IActionResult> DeleteTitle([FromRoute] Guid id, CancellationToken cancellationToken)
             => MediatorSendRequest(new DeleteTitleCommand()
             {
@@ -93,6 +94,7 @@ namespace OnlineСinema.Controllers
            null);
 
         [HttpPatch("{id:guid}")]
+        [AuthorizeOneOfRoles("admin", "edit_titles")]
         public Task<IActionResult> UpdateTitle([FromRoute] Guid id, [FromBody] UpdateTitleDto dto, CancellationToken cancellationToken)
             => MediatorSendRequest(new UpdateTitleQuery()
             {
@@ -103,6 +105,7 @@ namespace OnlineСinema.Controllers
             null);
 
         [HttpPost("order")]
+        [AuthorizeOneOfRoles("admin", "edit_titles")]
         public Task<IActionResult> ChangeTitleStaffOrder([FromBody] List<OrderDto> dtos, CancellationToken cancellationToken)
             => MediatorSendRequest(new ChangeOrderInTitleCommand()
             {

@@ -19,7 +19,7 @@ const AdminApiMixine = {
         async GenerateDescription(dirPath){
             return await this.__CreateResponce(await this.__makeRequest(
                 "Post",
-                "/Admin/Admin/description/generate",
+                "/Admin/description/generate",
                 null,
                 null,
                 null

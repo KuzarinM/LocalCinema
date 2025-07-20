@@ -26,6 +26,9 @@ namespace OnlineСinema.Logic.Handlers.Queries.Users
             if (user == null)
                 return Error("Пользователя с таким Login не найдено");
 
+            if (!user.LockoutEnabled)
+                return Error("Пользоавтель заблокирован");
+
             if (await _userManager.CheckPasswordAsync(user, request.Password))
             {
                 var userRoles = await _userManager.GetRolesAsync(user);
